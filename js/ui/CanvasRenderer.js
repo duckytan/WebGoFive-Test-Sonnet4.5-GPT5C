@@ -131,26 +131,64 @@ class CanvasRenderer {
 
   drawBoard() {
     const totalSize = this.boardSize * this.cellSize + this.padding * 2;
+    const boardStart = this.padding;
+    const boardSpan = (this.boardSize - 1) * this.cellSize;
+    const boardEnd = boardStart + boardSpan;
 
-    this.ctx.fillStyle = '#DEB887';
+    this.ctx.save();
+
+    const gradient = this.ctx.createLinearGradient(0, boardStart / 2, 0, totalSize);
+    gradient.addColorStop(0, '#f7e4c1');
+    gradient.addColorStop(0.45, '#e4c08c');
+    gradient.addColorStop(1, '#d6a166');
+    this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, totalSize, totalSize);
 
-    this.ctx.strokeStyle = '#000';
-    this.ctx.lineWidth = 1;
-
-    for (let i = 0; i < this.boardSize; i += 1) {
-      const offset = this.padding + i * this.cellSize;
-
+    this.ctx.save();
+    this.ctx.globalAlpha = 0.06;
+    const textureStep = 14;
+    for (let x = -totalSize; x < totalSize * 1.5; x += textureStep) {
       this.ctx.beginPath();
-      this.ctx.moveTo(this.padding, offset);
-      this.ctx.lineTo(this.padding + (this.boardSize - 1) * this.cellSize, offset);
-      this.ctx.stroke();
-
-      this.ctx.beginPath();
-      this.ctx.moveTo(offset, this.padding);
-      this.ctx.lineTo(offset, this.padding + (this.boardSize - 1) * this.cellSize);
+      this.ctx.moveTo(x, 0);
+      this.ctx.lineTo(x + totalSize * 0.45, totalSize);
+      this.ctx.strokeStyle = '#7c5a2f';
+      this.ctx.lineWidth = 1.1;
       this.ctx.stroke();
     }
+    this.ctx.restore();
+
+    this.ctx.save();
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+    this.ctx.shadowBlur = 15;
+    this.ctx.shadowOffsetX = 5;
+    this.ctx.shadowOffsetY = 8;
+    this.ctx.strokeStyle = 'rgba(116, 75, 35, 0.8)';
+    this.ctx.lineWidth = 3.5;
+    this.ctx.strokeRect(boardStart - 6, boardStart - 6, boardSpan + 12, boardSpan + 12);
+    this.ctx.restore();
+
+    this.ctx.strokeStyle = 'rgba(95, 63, 27, 0.75)';
+    this.ctx.lineWidth = 1.1;
+    this.ctx.lineCap = 'round';
+
+    for (let i = 0; i < this.boardSize; i += 1) {
+      const offset = boardStart + i * this.cellSize;
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(boardStart, offset);
+      this.ctx.lineTo(boardEnd, offset);
+      this.ctx.stroke();
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(offset, boardStart);
+      this.ctx.lineTo(offset, boardEnd);
+      this.ctx.stroke();
+    }
+
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(boardStart, boardStart, boardSpan, boardSpan);
+
+    this.ctx.restore();
   }
 
   drawStarPoints() {
@@ -162,34 +200,40 @@ class CanvasRenderer {
       { x: 11, y: 11 }
     ];
 
-    this.ctx.fillStyle = '#000';
     for (const point of starPoints) {
       const pos = this.gridToScreen(point.x, point.y);
+      const gradient = this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 5);
+      gradient.addColorStop(0, '#1a1a1a');
+      gradient.addColorStop(1, 'rgba(26, 26, 26, 0.6)');
+      this.ctx.fillStyle = gradient;
       this.ctx.beginPath();
-      this.ctx.arc(pos.x, pos.y, 4, 0, Math.PI * 2);
+      this.ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
       this.ctx.fill();
     }
   }
 
   drawCoordinates() {
-    this.ctx.font = '12px Arial';
-    this.ctx.fillStyle = '#333';
+    this.ctx.save();
+    this.ctx.font = '600 13px "Segoe UI", Arial, sans-serif';
+    this.ctx.fillStyle = 'rgba(90, 56, 20, 0.85)';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';
 
     for (let i = 0; i < this.boardSize; i += 1) {
       const pos = this.padding + i * this.cellSize;
       const label = String.fromCharCode(65 + i);
-      this.ctx.fillText(label, pos, this.padding - 20);
-      this.ctx.fillText(label, pos, this.padding + (this.boardSize - 1) * this.cellSize + 20);
+      this.ctx.fillText(label, pos, this.padding - 22);
+      this.ctx.fillText(label, pos, this.padding + (this.boardSize - 1) * this.cellSize + 22);
     }
 
     for (let i = 0; i < this.boardSize; i += 1) {
       const pos = this.padding + i * this.cellSize;
       const label = String(i + 1);
-      this.ctx.fillText(label, this.padding - 20, pos);
-      this.ctx.fillText(label, this.padding + (this.boardSize - 1) * this.cellSize + 20, pos);
+      this.ctx.fillText(label, this.padding - 22, pos);
+      this.ctx.fillText(label, this.padding + (this.boardSize - 1) * this.cellSize + 22, pos);
     }
+
+    this.ctx.restore();
   }
 
   drawPieces() {
@@ -206,68 +250,174 @@ class CanvasRenderer {
   drawPiece(x, y, player) {
     const pos = this.gridToScreen(x, y);
 
-    this.ctx.beginPath();
-    this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+    this.ctx.save();
+
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    this.ctx.shadowBlur = 8;
+    this.ctx.shadowOffsetX = 3;
+    this.ctx.shadowOffsetY = 3;
 
     if (player === 1) {
-      const gradient = this.ctx.createRadialGradient(pos.x - 5, pos.y - 5, 2, pos.x, pos.y, this.pieceRadius);
-      gradient.addColorStop(0, '#555');
-      gradient.addColorStop(1, '#000');
+      const gradient = this.ctx.createRadialGradient(
+        pos.x - this.pieceRadius * 0.3,
+        pos.y - this.pieceRadius * 0.3,
+        this.pieceRadius * 0.1,
+        pos.x,
+        pos.y,
+        this.pieceRadius
+      );
+      gradient.addColorStop(0, '#5a5a5a');
+      gradient.addColorStop(0.5, '#2a2a2a');
+      gradient.addColorStop(1, '#0a0a0a');
       this.ctx.fillStyle = gradient;
+
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.strokeStyle = '#000';
+      this.ctx.lineWidth = 1.5;
+      this.ctx.stroke();
+
+      this.ctx.shadowColor = 'transparent';
+      const highlight = this.ctx.createRadialGradient(
+        pos.x - this.pieceRadius * 0.4,
+        pos.y - this.pieceRadius * 0.4,
+        0,
+        pos.x - this.pieceRadius * 0.4,
+        pos.y - this.pieceRadius * 0.4,
+        this.pieceRadius * 0.6
+      );
+      highlight.addColorStop(0, 'rgba(120, 120, 120, 0.7)');
+      highlight.addColorStop(1, 'rgba(120, 120, 120, 0)');
+      this.ctx.fillStyle = highlight;
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
     } else {
-      const gradient = this.ctx.createRadialGradient(pos.x - 5, pos.y - 5, 2, pos.x, pos.y, this.pieceRadius);
-      gradient.addColorStop(0, '#fff');
-      gradient.addColorStop(1, '#ddd');
+      const gradient = this.ctx.createRadialGradient(
+        pos.x - this.pieceRadius * 0.3,
+        pos.y - this.pieceRadius * 0.3,
+        this.pieceRadius * 0.1,
+        pos.x,
+        pos.y,
+        this.pieceRadius
+      );
+      gradient.addColorStop(0, '#ffffff');
+      gradient.addColorStop(0.6, '#f2f2f2');
+      gradient.addColorStop(1, '#d0d0d0');
       this.ctx.fillStyle = gradient;
+
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.strokeStyle = 'rgba(100, 100, 100, 0.6)';
+      this.ctx.lineWidth = 1.2;
+      this.ctx.stroke();
+
+      this.ctx.shadowColor = 'transparent';
+      const highlight = this.ctx.createRadialGradient(
+        pos.x - this.pieceRadius * 0.35,
+        pos.y - this.pieceRadius * 0.35,
+        0,
+        pos.x - this.pieceRadius * 0.35,
+        pos.y - this.pieceRadius * 0.35,
+        this.pieceRadius * 0.7
+      );
+      highlight.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+      highlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      this.ctx.fillStyle = highlight;
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
     }
 
-    this.ctx.fill();
-    this.ctx.strokeStyle = '#000';
-    this.ctx.lineWidth = 1;
-    this.ctx.stroke();
+    this.ctx.restore();
   }
 
   drawEffects() {
+    this.ctx.save();
+
     if (this.hoverPosition && this.state.board[this.hoverPosition.y][this.hoverPosition.x] === 0) {
       const pos = this.gridToScreen(this.hoverPosition.x, this.hoverPosition.y);
       this.ctx.beginPath();
-      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
-      this.ctx.fillStyle = this.state.currentPlayer === 1 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.5)';
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius - 2, 0, Math.PI * 2);
+      if (this.state.currentPlayer === 1) {
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+      } else {
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        this.ctx.strokeStyle = 'rgba(200, 200, 200, 0.8)';
+      }
       this.ctx.fill();
+      this.ctx.lineWidth = 1.5;
+      this.ctx.stroke();
     }
 
     if (this.lastMove) {
       const pos = this.gridToScreen(this.lastMove.x, this.lastMove.y);
       const player = this.state.board[this.lastMove.y][this.lastMove.x];
+
+      this.ctx.save();
+      const highlightColor = player === 1 ? 'rgba(255, 182, 87, 0.9)' : 'rgba(100, 181, 246, 0.9)';
+      const glowColor = player === 1 ? 'rgba(255, 182, 87, 0.6)' : 'rgba(100, 181, 246, 0.6)';
+      this.ctx.shadowColor = glowColor;
+      this.ctx.shadowBlur = 14;
+
       this.ctx.beginPath();
-      this.ctx.arc(pos.x, pos.y, this.pieceRadius + 5, 0, Math.PI * 2);
-      this.ctx.strokeStyle = player === 1 ? 'rgba(255, 215, 0, 0.8)' : 'rgba(255, 105, 180, 0.8)';
-      this.ctx.lineWidth = 3;
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius + 6, 0, Math.PI * 2);
+      this.ctx.strokeStyle = highlightColor;
+      this.ctx.lineWidth = 3.5;
       this.ctx.stroke();
+      this.ctx.restore();
     }
 
     if (this.hintMove) {
       const pos = this.gridToScreen(this.hintMove.x, this.hintMove.y);
-      this.ctx.strokeStyle = 'rgba(0, 255, 0, 0.7)';
-      this.ctx.lineWidth = 2;
+      
+      this.ctx.save();
+      this.ctx.shadowColor = 'rgba(34, 197, 94, 0.7)';
+      this.ctx.shadowBlur = 12;
+      
+      this.ctx.strokeStyle = 'rgba(34, 197, 94, 0.85)';
+      this.ctx.lineWidth = 3;
+      this.ctx.lineCap = 'round';
       this.ctx.beginPath();
-      this.ctx.moveTo(pos.x - 12, pos.y);
-      this.ctx.lineTo(pos.x + 12, pos.y);
-      this.ctx.moveTo(pos.x, pos.y - 12);
-      this.ctx.lineTo(pos.x, pos.y + 12);
+      this.ctx.moveTo(pos.x - 14, pos.y);
+      this.ctx.lineTo(pos.x + 14, pos.y);
+      this.ctx.moveTo(pos.x, pos.y - 14);
+      this.ctx.lineTo(pos.x, pos.y + 14);
       this.ctx.stroke();
+      this.ctx.restore();
     }
 
     if (this.forbiddenHighlight) {
       const pos = this.gridToScreen(this.forbiddenHighlight.x, this.forbiddenHighlight.y);
-      this.ctx.strokeStyle = 'rgba(211, 47, 47, 0.85)';
-      this.ctx.lineWidth = 3;
-      this.ctx.strokeRect(pos.x - this.pieceRadius, pos.y - this.pieceRadius, this.pieceRadius * 2, this.pieceRadius * 2);
+      
+      this.ctx.save();
+      this.ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+      this.ctx.shadowBlur = 12;
+      
+      this.ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+      this.ctx.lineWidth = 4;
+      this.ctx.lineJoin = 'round';
+      const size = this.pieceRadius + 4;
+      this.ctx.strokeRect(pos.x - size, pos.y - size, size * 2, size * 2);
+      this.ctx.restore();
     }
 
     if (this.state.winLine && this.state.winLine.length > 0) {
-      this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-      this.ctx.lineWidth = 4;
+      this.ctx.save();
+      
+      this.ctx.shadowColor = 'rgba(239, 68, 68, 0.7)';
+      this.ctx.shadowBlur = 20;
+      
+      this.ctx.strokeStyle = 'rgba(239, 68, 68, 0.95)';
+      this.ctx.lineWidth = 5;
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+      
       this.ctx.beginPath();
       const firstPos = this.gridToScreen(this.state.winLine[0].x, this.state.winLine[0].y);
       this.ctx.moveTo(firstPos.x, firstPos.y);
@@ -276,7 +426,11 @@ class CanvasRenderer {
         this.ctx.lineTo(pos.x, pos.y);
       }
       this.ctx.stroke();
+      
+      this.ctx.restore();
     }
+
+    this.ctx.restore();
   }
 
   showHint(move) {
