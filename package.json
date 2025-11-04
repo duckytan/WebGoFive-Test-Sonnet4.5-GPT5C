@@ -1,0 +1,17 @@
+{
+  "name": "h5-gomoku",
+  "version": "2.0.0",
+  "description": "HTML5 Gomoku game rebuilt with vanilla JavaScript.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests"
+  },
+  "keywords": [
+    "gomoku",
+    "five-in-a-row",
+    "canvas",
+    "game"
+  ],
+  "author": "cto.new generated",
+  "license": "MIT"
+}
