@@ -11,11 +11,15 @@ class HudPanel {
       mode: document.getElementById('mode-display'),
       player: document.getElementById('player-display'),
       message: document.getElementById('message-display'),
-      timer: document.getElementById('timer-display')
+      timer: document.getElementById('timer-display'),
+      modePvPBtn: document.getElementById('mode-pvp-btn'),
+      modePvEBtn: document.getElementById('mode-pve-btn'),
+      modeEvEBtn: document.getElementById('mode-eve-btn')
     };
 
     this.timerInterval = null;
     this._setupEventListeners();
+    this._updateModeButtons();
   }
 
   _setupEventListeners() {
@@ -39,6 +43,7 @@ class HudPanel {
     this.updateMode();
     this.updateCurrentPlayer();
     this.updateTimer();
+    this._updateModeButtons();
   }
 
   updateStatus() {
@@ -164,6 +169,25 @@ class HudPanel {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
     }
+  }
+
+  _updateModeButtons() {
+    const currentMode = this.state.mode;
+    const buttons = {
+      PvP: this.elements.modePvPBtn,
+      PvE: this.elements.modePvEBtn,
+      EvE: this.elements.modeEvEBtn
+    };
+
+    Object.entries(buttons).forEach(([mode, btn]) => {
+      if (btn) {
+        if (mode === currentMode) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
   }
 }
 
