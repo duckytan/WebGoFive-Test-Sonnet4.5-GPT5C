@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="H5五子棋游戏 - 支持PvP/PvE/EvE模式，完整禁手规则">
+  <title>H5 五子棋 v2.0</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header class="app-header">
+      <h1>五子棋 Gomoku</h1>
+      <span class="version-badge">v2.0.0</span>
+    </header>
+
+    <div class="game-area">
+      <aside class="side-panel left-panel">
+        <div class="panel-section">
+          <h3>游戏状态</h3>
+          <div class="status-group">
+            <div class="status-item">
+              <span class="label">状态:</span>
+              <span id="status-display" class="value">Ready</span>
+            </div>
+            <div class="status-item">
+              <span class="label">模式:</span>
+              <span id="mode-display" class="value">PvP</span>
+            </div>
+            <div class="status-item">
+              <span class="label">当前:</span>
+              <span id="player-display" class="value">Black</span>
+            </div>
+            <div class="status-item">
+              <span class="label">时间:</span>
+              <span id="timer-display" class="value">00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>游戏控制</h3>
+          <div class="btn-group">
+            <button id="new-game-btn" class="btn btn-primary">新游戏</button>
+            <button id="undo-btn" class="btn">悔棋</button>
+            <button id="hint-btn" class="btn">提示</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>模式选择</h3>
+          <div class="btn-group">
+            <button id="mode-pvp-btn" class="btn btn-mode">PvP</button>
+            <button id="mode-pve-btn" class="btn btn-mode">PvE</button>
+            <button id="mode-eve-btn" class="btn btn-mode">EvE</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>存档回放</h3>
+          <div class="btn-group">
+            <button id="save-btn" class="btn">保存</button>
+            <button id="load-btn" class="btn">加载</button>
+            <button id="replay-btn" class="btn">回放</button>
+            <button id="export-btn" class="btn">导出</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="board-area">
+        <canvas id="game-board"></canvas>
+        <div id="message-display" class="message" style="display:none;"></div>
+      </main>
+
+      <aside class="side-panel right-panel">
+        <div class="panel-section">
+          <h3>说明</h3>
+          <div class="info-text">
+            <p><strong>PvP模式:</strong> 双人本地对战</p>
+            <p><strong>PvE模式:</strong> 人机对战</p>
+            <p><strong>EvE模式:</strong> 机机对战（观战）</p>
+            <hr>
+            <p><strong>禁手规则:</strong></p>
+            <p>• 黑棋禁止三三、四四、长连</p>
+            <p>• 白棋无禁手</p>
+            <hr>
+            <p><strong>快捷键:</strong></p>
+            <p>• N - 新游戏</p>
+            <p>• U - 悔棋</p>
+            <p>• H - 提示</p>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>项目信息</h3>
+          <div class="info-text">
+            <p>基于 Canvas 的纯前端五子棋</p>
+            <p>技术栈: JavaScript ES2020</p>
+            <p>架构: MVC + 事件驱动</p>
+            <p>完整支持禁手规则和四级AI</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="result-dialog" class="dialog">
+    <div id="result-content" class="dialog-content">
+      <!-- 动态内容 -->
+    </div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="dialog">
+    <div class="dialog-content">
+      <h2>设置</h2>
+      <p>设置功能即将推出...</p>
+      <button id="settings-close-btn" class="btn">关闭</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
