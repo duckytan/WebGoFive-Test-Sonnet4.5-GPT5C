@@ -72,6 +72,11 @@ class GomokuApp {
       this.modeManager.handleMove(pos.x, pos.y);
     });
 
+    this.eventBus.on('mode:changed', (data) => {
+      const mode = data && data.mode ? data.mode : this.gameState.mode;
+      this._updateModeButtons(mode);
+    });
+
     this.renderer.render();
     this.hudPanel.update();
   }
@@ -112,9 +117,9 @@ class GomokuApp {
     const replayBtn = document.getElementById('replay-btn');
     const exportBtn = document.getElementById('export-btn');
 
-    const modePvPBtn = document.getElementById('mode-pvp-btn');
-    const modePvEBtn = document.getElementById('mode-pve-btn');
-    const modeEvEBtn = document.getElementById('mode-eve-btn');
+    this.modePvPBtn = document.getElementById('mode-pvp-btn');
+    this.modePvEBtn = document.getElementById('mode-pve-btn');
+    this.modeEvEBtn = document.getElementById('mode-eve-btn');
 
     if (newGameBtn) {
       newGameBtn.addEventListener('click', () => this.startNewGame());
@@ -144,17 +149,19 @@ class GomokuApp {
       exportBtn.addEventListener('click', () => this.export());
     }
 
-    if (modePvPBtn) {
-      modePvPBtn.addEventListener('click', () => this.changeMode('PvP'));
+    if (this.modePvPBtn) {
+      this.modePvPBtn.addEventListener('click', () => this.changeMode('PvP'));
     }
 
-    if (modePvEBtn) {
-      modePvEBtn.addEventListener('click', () => this.changeMode('PvE', { aiDifficulty: 'NORMAL', playerSide: 1 }));
+    if (this.modePvEBtn) {
+      this.modePvEBtn.addEventListener('click', () => this.changeMode('PvE', { aiDifficulty: 'NORMAL', playerSide: 1 }));
     }
 
-    if (modeEvEBtn) {
-      modeEvEBtn.addEventListener('click', () => this.changeMode('EvE', { blackAI: 'NORMAL', whiteAI: 'HARD' }));
+    if (this.modeEvEBtn) {
+      this.modeEvEBtn.addEventListener('click', () => this.changeMode('EvE', { blackAI: 'NORMAL', whiteAI: 'HARD' }));
     }
+
+    this._updateModeButtons();
 
     document.addEventListener('keydown', (e) => this._handleKeyboard(e));
   }
@@ -182,6 +189,23 @@ class GomokuApp {
           this.load();
         }
         break;
+    }
+  }
+
+  _updateModeButtons(activeMode = this.gameState.mode) {
+    const mapping = [
+      { mode: 'PvP', element: this.modePvPBtn },
+      { mode: 'PvE', element: this.modePvEBtn },
+      { mode: 'EvE', element: this.modeEvEBtn }
+    ];
+
+    for (const { mode, element } of mapping) {
+      if (!element) continue;
+      if (mode === activeMode) {
+        element.classList.add('active');
+      } else {
+        element.classList.remove('active');
+      }
     }
   }
 
@@ -267,6 +291,7 @@ class GomokuApp {
   changeMode(mode, options) {
     try {
       this.modeManager.setMode(mode, options);
+      this._updateModeButtons(mode);
       this.hudPanel.update();
       this.hudPanel.showMessage(`Mode changed to ${mode}`, 'info', 1500);
       this.startNewGame();
