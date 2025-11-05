@@ -10,29 +10,51 @@
 <body>
   <div class="container">
     <header class="app-header">
-      <h1>五子棋 Gomoku</h1>
-      <span class="version-badge">v2.0.0</span>
+      <div class="header-left">
+        <h1>五子棋 Gomoku</h1>
+        <p class="header-subtitle">光影棋道 · 次世代策略对弈体验</p>
+        <div class="header-actions">
+          <button id="open-settings-btn" class="header-action-btn">
+            <span class="icon">⚙️</span>
+            <span>沉浸式设置</span>
+          </button>
+          <button id="open-help-btn" class="header-action-btn">
+            <span class="icon">❓</span>
+            <span>规则指南</span>
+          </button>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="version-badge">v2.0.0</span>
+        <span class="status-badge status-badge--live">实时对弈</span>
+      </div>
     </header>
 
     <div class="game-area">
       <aside class="side-panel left-panel">
         <div class="panel-section">
           <h3>游戏状态</h3>
+          <div class="current-player-card">
+            <div id="current-player-indicator" class="player-avatar player-avatar--black">
+              <span class="avatar-glow"></span>
+            </div>
+            <div class="current-player-info">
+              <span class="label">当前回合</span>
+              <span id="player-display" class="value">黑棋 · 第 1 手</span>
+              <span id="move-counter" class="meta">等待开局</span>
+            </div>
+          </div>
           <div class="status-group">
             <div class="status-item">
-              <span class="label">状态:</span>
-              <span id="status-display" class="value">Ready</span>
+              <span class="label">状态</span>
+              <span id="status-display" class="value">准备中</span>
             </div>
             <div class="status-item">
-              <span class="label">模式:</span>
+              <span class="label">模式</span>
               <span id="mode-display" class="value">PvP</span>
             </div>
             <div class="status-item">
-              <span class="label">当前:</span>
-              <span id="player-display" class="value">Black</span>
-            </div>
-            <div class="status-item">
-              <span class="label">时间:</span>
+              <span class="label">计时</span>
               <span id="timer-display" class="value">00:00</span>
             </div>
           </div>
