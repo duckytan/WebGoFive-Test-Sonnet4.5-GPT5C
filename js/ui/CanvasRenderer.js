@@ -137,42 +137,59 @@ class CanvasRenderer {
 
     this.ctx.save();
 
-    const gradient = this.ctx.createLinearGradient(0, boardStart / 2, 0, totalSize);
-    gradient.addColorStop(0, '#f7e4c1');
-    gradient.addColorStop(0.45, '#e4c08c');
-    gradient.addColorStop(1, '#d6a166');
-    this.ctx.fillStyle = gradient;
+    const bgGradient = this.ctx.createRadialGradient(
+      totalSize / 2, totalSize / 2, 0,
+      totalSize / 2, totalSize / 2, totalSize * 0.8
+    );
+    bgGradient.addColorStop(0, '#f9e8c5');
+    bgGradient.addColorStop(0.5, '#e6c98f');
+    bgGradient.addColorStop(1, '#d4a56e');
+    this.ctx.fillStyle = bgGradient;
     this.ctx.fillRect(0, 0, totalSize, totalSize);
 
     this.ctx.save();
-    this.ctx.globalAlpha = 0.06;
-    const textureStep = 14;
-    for (let x = -totalSize; x < totalSize * 1.5; x += textureStep) {
+    this.ctx.globalAlpha = 0.08;
+    const textureStep = 12;
+    for (let x = -totalSize; x < totalSize * 1.8; x += textureStep) {
       this.ctx.beginPath();
       this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x + totalSize * 0.45, totalSize);
-      this.ctx.strokeStyle = '#7c5a2f';
-      this.ctx.lineWidth = 1.1;
+      this.ctx.lineTo(x + totalSize * 0.5, totalSize);
+      this.ctx.strokeStyle = '#9d7446';
+      this.ctx.lineWidth = 1.2;
       this.ctx.stroke();
     }
     this.ctx.restore();
 
     this.ctx.save();
-    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-    this.ctx.shadowBlur = 15;
-    this.ctx.shadowOffsetX = 5;
-    this.ctx.shadowOffsetY = 8;
-    this.ctx.strokeStyle = 'rgba(116, 75, 35, 0.8)';
-    this.ctx.lineWidth = 3.5;
-    this.ctx.strokeRect(boardStart - 6, boardStart - 6, boardSpan + 12, boardSpan + 12);
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+    this.ctx.shadowBlur = 20;
+    this.ctx.shadowOffsetX = 6;
+    this.ctx.shadowOffsetY = 10;
+    
+    const borderGradient = this.ctx.createLinearGradient(
+      boardStart - 8, boardStart - 8,
+      boardStart - 8, boardStart + boardSpan + 8
+    );
+    borderGradient.addColorStop(0, 'rgba(140, 95, 50, 0.9)');
+    borderGradient.addColorStop(0.5, 'rgba(116, 75, 35, 0.85)');
+    borderGradient.addColorStop(1, 'rgba(100, 65, 30, 0.9)');
+    this.ctx.strokeStyle = borderGradient;
+    this.ctx.lineWidth = 4;
+    this.ctx.strokeRect(boardStart - 8, boardStart - 8, boardSpan + 16, boardSpan + 16);
     this.ctx.restore();
 
-    this.ctx.strokeStyle = 'rgba(95, 63, 27, 0.75)';
-    this.ctx.lineWidth = 1.1;
+    this.ctx.strokeStyle = 'rgba(85, 55, 25, 0.8)';
+    this.ctx.lineWidth = 1.3;
     this.ctx.lineCap = 'round';
 
     for (let i = 0; i < this.boardSize; i += 1) {
       const offset = boardStart + i * this.cellSize;
+
+      this.ctx.save();
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 1;
 
       this.ctx.beginPath();
       this.ctx.moveTo(boardStart, offset);
@@ -183,10 +200,15 @@ class CanvasRenderer {
       this.ctx.moveTo(offset, boardStart);
       this.ctx.lineTo(offset, boardEnd);
       this.ctx.stroke();
+      
+      this.ctx.restore();
     }
 
-    this.ctx.lineWidth = 2;
+    this.ctx.save();
+    this.ctx.strokeStyle = 'rgba(70, 45, 20, 0.9)';
+    this.ctx.lineWidth = 2.5;
     this.ctx.strokeRect(boardStart, boardStart, boardSpan, boardSpan);
+    this.ctx.restore();
 
     this.ctx.restore();
   }
@@ -202,13 +224,22 @@ class CanvasRenderer {
 
     for (const point of starPoints) {
       const pos = this.gridToScreen(point.x, point.y);
-      const gradient = this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 5);
-      gradient.addColorStop(0, '#1a1a1a');
-      gradient.addColorStop(1, 'rgba(26, 26, 26, 0.6)');
+      
+      this.ctx.save();
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+      this.ctx.shadowBlur = 4;
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 1;
+      
+      const gradient = this.ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 6);
+      gradient.addColorStop(0, '#2a2a2a');
+      gradient.addColorStop(0.7, '#1a1a1a');
+      gradient.addColorStop(1, 'rgba(10, 10, 10, 0.7)');
       this.ctx.fillStyle = gradient;
       this.ctx.beginPath();
-      this.ctx.arc(pos.x, pos.y, 5, 0, Math.PI * 2);
+      this.ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
       this.ctx.fill();
+      this.ctx.restore();
     }
   }
 
@@ -252,23 +283,24 @@ class CanvasRenderer {
 
     this.ctx.save();
 
-    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-    this.ctx.shadowBlur = 8;
-    this.ctx.shadowOffsetX = 3;
-    this.ctx.shadowOffsetY = 3;
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    this.ctx.shadowBlur = 10;
+    this.ctx.shadowOffsetX = 4;
+    this.ctx.shadowOffsetY = 5;
 
     if (player === 1) {
       const gradient = this.ctx.createRadialGradient(
-        pos.x - this.pieceRadius * 0.3,
-        pos.y - this.pieceRadius * 0.3,
+        pos.x - this.pieceRadius * 0.35,
+        pos.y - this.pieceRadius * 0.35,
         this.pieceRadius * 0.1,
         pos.x,
         pos.y,
         this.pieceRadius
       );
-      gradient.addColorStop(0, '#5a5a5a');
-      gradient.addColorStop(0.5, '#2a2a2a');
-      gradient.addColorStop(1, '#0a0a0a');
+      gradient.addColorStop(0, '#6a6a6a');
+      gradient.addColorStop(0.3, '#3a3a3a');
+      gradient.addColorStop(0.7, '#1a1a1a');
+      gradient.addColorStop(1, '#050505');
       this.ctx.fillStyle = gradient;
 
       this.ctx.beginPath();
@@ -276,58 +308,91 @@ class CanvasRenderer {
       this.ctx.fill();
 
       this.ctx.strokeStyle = '#000';
-      this.ctx.lineWidth = 1.5;
+      this.ctx.lineWidth = 2;
       this.ctx.stroke();
 
       this.ctx.shadowColor = 'transparent';
       const highlight = this.ctx.createRadialGradient(
-        pos.x - this.pieceRadius * 0.4,
-        pos.y - this.pieceRadius * 0.4,
+        pos.x - this.pieceRadius * 0.5,
+        pos.y - this.pieceRadius * 0.5,
         0,
-        pos.x - this.pieceRadius * 0.4,
-        pos.y - this.pieceRadius * 0.4,
+        pos.x - this.pieceRadius * 0.5,
+        pos.y - this.pieceRadius * 0.5,
+        this.pieceRadius * 0.75
+      );
+      highlight.addColorStop(0, 'rgba(160, 160, 160, 0.8)');
+      highlight.addColorStop(0.5, 'rgba(100, 100, 100, 0.3)');
+      highlight.addColorStop(1, 'rgba(100, 100, 100, 0)');
+      this.ctx.fillStyle = highlight;
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      const innerShadow = this.ctx.createRadialGradient(
+        pos.x + this.pieceRadius * 0.4,
+        pos.y + this.pieceRadius * 0.4,
+        0,
+        pos.x + this.pieceRadius * 0.4,
+        pos.y + this.pieceRadius * 0.4,
         this.pieceRadius * 0.6
       );
-      highlight.addColorStop(0, 'rgba(120, 120, 120, 0.7)');
-      highlight.addColorStop(1, 'rgba(120, 120, 120, 0)');
-      this.ctx.fillStyle = highlight;
+      innerShadow.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+      innerShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      this.ctx.fillStyle = innerShadow;
       this.ctx.beginPath();
       this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
       this.ctx.fill();
     } else {
       const gradient = this.ctx.createRadialGradient(
-        pos.x - this.pieceRadius * 0.3,
-        pos.y - this.pieceRadius * 0.3,
+        pos.x - this.pieceRadius * 0.35,
+        pos.y - this.pieceRadius * 0.35,
         this.pieceRadius * 0.1,
         pos.x,
         pos.y,
         this.pieceRadius
       );
       gradient.addColorStop(0, '#ffffff');
-      gradient.addColorStop(0.6, '#f2f2f2');
-      gradient.addColorStop(1, '#d0d0d0');
+      gradient.addColorStop(0.4, '#fafafa');
+      gradient.addColorStop(0.7, '#e8e8e8');
+      gradient.addColorStop(1, '#c8c8c8');
       this.ctx.fillStyle = gradient;
 
       this.ctx.beginPath();
       this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
       this.ctx.fill();
 
-      this.ctx.strokeStyle = 'rgba(100, 100, 100, 0.6)';
-      this.ctx.lineWidth = 1.2;
+      this.ctx.strokeStyle = 'rgba(120, 120, 120, 0.7)';
+      this.ctx.lineWidth = 1.5;
       this.ctx.stroke();
 
       this.ctx.shadowColor = 'transparent';
       const highlight = this.ctx.createRadialGradient(
-        pos.x - this.pieceRadius * 0.35,
-        pos.y - this.pieceRadius * 0.35,
+        pos.x - this.pieceRadius * 0.45,
+        pos.y - this.pieceRadius * 0.45,
         0,
-        pos.x - this.pieceRadius * 0.35,
-        pos.y - this.pieceRadius * 0.35,
-        this.pieceRadius * 0.7
+        pos.x - this.pieceRadius * 0.45,
+        pos.y - this.pieceRadius * 0.45,
+        this.pieceRadius * 0.8
       );
-      highlight.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+      highlight.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      highlight.addColorStop(0.4, 'rgba(255, 255, 255, 0.6)');
       highlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
       this.ctx.fillStyle = highlight;
+      this.ctx.beginPath();
+      this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      const innerShadow = this.ctx.createRadialGradient(
+        pos.x + this.pieceRadius * 0.35,
+        pos.y + this.pieceRadius * 0.35,
+        0,
+        pos.x + this.pieceRadius * 0.35,
+        pos.y + this.pieceRadius * 0.35,
+        this.pieceRadius * 0.65
+      );
+      innerShadow.addColorStop(0, 'rgba(0, 0, 0, 0.15)');
+      innerShadow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      this.ctx.fillStyle = innerShadow;
       this.ctx.beginPath();
       this.ctx.arc(pos.x, pos.y, this.pieceRadius, 0, Math.PI * 2);
       this.ctx.fill();
