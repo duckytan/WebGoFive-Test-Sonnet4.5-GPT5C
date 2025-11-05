@@ -204,43 +204,59 @@ class RuleEngine {
    * @returns {number}
    */
   _countOpenThrees(line, centerIndex) {
-    const seen = new Set();
-    let count = 0;
-    const lengths = [7];
-
-    for (const length of lengths) {
-      for (let start = 0; start <= line.length - length; start += 1) {
-        const end = start + length - 1;
+    // 活三的标准模式：
+    // 1. _XXX_ (01110) - 连续三子，两端开放
+    // 2. _XX_X_ (01101) - 跳一活三
+    // 3. _X_XX_ (01011) - 跳一活三
+    
+    const patterns = [
+      [0, 1, 1, 1, 0],       // 01110 连三
+      [0, 1, 1, 0, 1, 0],    // 011010 跳三
+      [0, 1, 0, 1, 1, 0]     // 010110 跳三
+    ];
+    
+    const foundThrees = new Set();
+    
+    for (const pattern of patterns) {
+      const patternLen = pattern.length;
+      
+      // 滑动窗口查找该模式
+      for (let start = 0; start <= line.length - patternLen; start += 1) {
+        const end = start + patternLen - 1;
+        
+        // 检查中心点是否在此窗口内
         if (centerIndex < start || centerIndex > end) continue;
+        
         const window = line.slice(start, end + 1);
-        if (window.includes(2) || window.includes(3)) continue;
-        if (!(window[0] === 0 && window[window.length - 1] === 0)) continue;
-        const pieces = window.filter(v => v === 1).length;
-        const empties = window.filter(v => v === 0).length;
-        if (pieces !== 3 || empties < 2) continue;
-
-        let hasPotential = false;
-        for (let innerStart = 0; innerStart <= window.length - 5; innerStart += 1) {
-          const inner = window.slice(innerStart, innerStart + 5);
-          if (inner.includes(2) || inner.includes(3)) continue;
-          const innerPieces = inner.filter(v => v === 1).length;
-          const innerEndsOpen = inner[0] === 0 && inner[4] === 0;
-          if (innerPieces === 3 && innerEndsOpen) {
-            hasPotential = true;
+        
+        // 检查窗口是否匹配模式
+        let matches = true;
+        let piecePositions = [];
+        for (let i = 0; i < patternLen; i += 1) {
+          if (pattern[i] === 1 && window[i] !== 1) {
+            matches = false;
             break;
           }
+          if (pattern[i] === 0 && window[i] !== 0) {
+            matches = false;
+            break;
+          }
+          if (pattern[i] === 1) {
+            piecePositions.push(start + i);
+          }
         }
-        if (!hasPotential) continue;
-
-        const key = `${start}-${end}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          count += 1;
+        
+        if (!matches) continue;
+        
+        // 使用棋子的实际位置作为去重key
+        const key = piecePositions.join(',');
+        if (!foundThrees.has(key)) {
+          foundThrees.add(key);
         }
       }
     }
-
-    return count;
+    
+    return foundThrees.size;
   }
 
   /**
@@ -250,41 +266,106 @@ class RuleEngine {
    * @returns {{openFours:number, rushFours:number}}
    */
   _countFours(line, centerIndex) {
-    const lengths = [6, 7];
-    const seenOpen = new Set();
-    const seenRush = new Set();
-    let openFours = 0;
-    let rushFours = 0;
-
-    for (const length of lengths) {
-      for (let start = 0; start <= line.length - length; start += 1) {
-        const end = start + length - 1;
+    // 活四的标准模式：
+    // 1. _XXXX_ (011110) - 连续四子，两端开放
+    // 2. _XXX_X_ (0111010) - 跳一活四
+    // 3. _XX_XX_ (0110110) - 跳一活四
+    // 4. _X_XXX_ (0101110) - 跳一活四
+    
+    // 冲四：一端被堵的四
+    // 1. XXXX_ 或 _XXXX (边界或对方棋子)
+    // 2. XXX_X_ 或 _X_XXX (跳四，一端被堵)
+    // 等等...
+    
+    const openFourPatterns = [
+      [0, 1, 1, 1, 1, 0],          // 011110 连四
+      [0, 1, 1, 1, 0, 1, 0],       // 0111010 跳四
+      [0, 1, 1, 0, 1, 1, 0],       // 0110110 跳四
+      [0, 1, 0, 1, 1, 1, 0]        // 0101110 跳四
+    ];
+    
+    const foundOpenFours = new Set();
+    const foundRushFours = new Set();
+    
+    // 检测活四
+    for (const pattern of openFourPatterns) {
+      const patternLen = pattern.length;
+      
+      for (let start = 0; start <= line.length - patternLen; start += 1) {
+        const end = start + patternLen - 1;
+        
         if (centerIndex < start || centerIndex > end) continue;
+        
         const window = line.slice(start, end + 1);
-        if (window.includes(2) || window.includes(3)) continue;
+        
+        let matches = true;
+        let piecePositions = [];
+        for (let i = 0; i < patternLen; i += 1) {
+          if (pattern[i] === 1 && window[i] !== 1) {
+            matches = false;
+            break;
+          }
+          if (pattern[i] === 0 && window[i] !== 0) {
+            matches = false;
+            break;
+          }
+          if (pattern[i] === 1) {
+            piecePositions.push(start + i);
+          }
+        }
+        
+        if (matches) {
+          const key = piecePositions.join(',');
+          foundOpenFours.add(key);
+        }
+      }
+    }
+    
+    // 检测冲四：寻找恰好4个己方棋子，且只有一端开放的情况
+    // 扫描5-7长度的窗口
+    for (let len = 5; len <= 7; len += 1) {
+      for (let start = 0; start <= line.length - len; start += 1) {
+        const end = start + len - 1;
+        
+        if (centerIndex < start || centerIndex > end) continue;
+        
+        const window = line.slice(start, end + 1);
+        
+        // 统计己方棋子
         const pieces = window.filter(v => v === 1).length;
         if (pieces !== 4) continue;
-
-        const leftEmpty = window[0] === 0;
-        const rightEmpty = window[window.length - 1] === 0;
-
-        if (leftEmpty && rightEmpty) {
-          const key = `${start}-${end}`;
-          if (!seenOpen.has(key)) {
-            seenOpen.add(key);
-            openFours += 1;
+        
+        // 检查是否包含对方棋子或边界
+        const hasOpponentOrBorder = window.some(v => v === 2 || v === 3);
+        if (!hasOpponentOrBorder) continue; // 如果没有被堵，可能是活四
+        
+        // 检查端点情况
+        const leftEnd = window[0];
+        const rightEnd = window[len - 1];
+        
+        // 冲四：一端是空，另一端是堵（对方棋子、边界）
+        const isRushFour = (leftEnd === 0 && (rightEnd === 2 || rightEnd === 3)) ||
+                           (rightEnd === 0 && (leftEnd === 2 || leftEnd === 3));
+        
+        if (isRushFour) {
+          // 提取棋子位置
+          const piecePositions = [];
+          for (let i = 0; i < len; i += 1) {
+            if (window[i] === 1) {
+              piecePositions.push(start + i);
+            }
           }
-        } else if (leftEmpty || rightEmpty) {
-          const key = `${start}-${end}`;
-          if (!seenRush.has(key)) {
-            seenRush.add(key);
-            rushFours += 1;
+          
+          const key = piecePositions.join(',');
+          // 确保不与活四重复
+          if (!foundOpenFours.has(key)) {
+            foundRushFours.add(key);
           }
         }
       }
     }
-
-    return { openFours, rushFours };
+    
+    return { openFours: foundOpenFours.size, rushFours: foundRushFours.size };
   }
 }
 
